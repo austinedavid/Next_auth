@@ -1,6 +1,8 @@
 import GithubProvider from "next-auth/providers/github"
 import dbConnect from "./dbConnext"
 import User from "./userModel"
+import jwt from "jsonwebtoken"
+import { JWT } from "next-auth/jwt"
 
 const options = {
 
@@ -11,6 +13,7 @@ const options = {
           clientSecret: process.env.GITHUB_SECRET!,
         }),
     ],
+
 
     // this is for callbacks, its runs a async function which are of the following
     // signin, session, jwt, and redirect callbacks
@@ -81,6 +84,35 @@ const options = {
       async redirect({ url, baseUrl }:{url:string, baseUrl:string}) {
         return baseUrl
       },
+    },
+
+    
+
+    /*
+    Another part of this option is the jwt setting
+    from the documentation, next-auth automatically sets a jwt inform of JWE  as a cookie,
+    thou it is advisible to still leave it that way and  not implement your own
+    but you can still implement it using this method
+    */
+    jwt:{
+      // here, the function params contains the secret and token
+      // the secret is simply the NEXT_SECRET we set in the .env
+      // why the token is the users session that we want to encrypt
+      async encode(params:{secret:string, token:JWT}): Promise<string>{
+        const condedtoken =  jwt.sign(
+          {...params.token,
+          iss: "gmodetech",
+          exp: Math.floor(Date.now()/1000) + 60*60
+          }, 
+          params.secret)
+        return condedtoken
+      },
+      // here the secret still remains the NEXT_SECRET 
+      // why this token is our encrypted jwt string
+      async decode(params:{secret:string, token:string}): Promise<JWT | null>{
+        const decodedToken = jwt.verify(params.token, params.secret) as JWT;
+        return decodedToken
+      }
     }
 }
 export default options 
