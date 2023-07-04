@@ -3,6 +3,8 @@ import dbConnect from "./dbConnext"
 import User from "./userModel"
 import jwt from "jsonwebtoken"
 import { JWT } from "next-auth/jwt"
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs"
 
 const options = {
 
@@ -12,6 +14,30 @@ const options = {
           clientId: process.env.GITHUB_ID!,
           clientSecret: process.env.GITHUB_SECRET!,
         }),
+        CredentialsProvider({
+          // The name to display on the sign in form (e.g. "Sign in with...")
+          name: "Your credential",
+          // `credentials` is used to generate a form on the sign in page.
+          // You can specify which fields should be submitted, by adding keys to the `credentials` object.
+          // e.g. domain, username, password, 2FA token, etc.
+          // You can pass any HTML attribute to the <input> tag through the object.
+          credentials: {
+            email: { label: "email", type: "text", placeholder: "enter your email" },
+            password: { label: "Password", type: "password" }
+          },
+          async authorize(credentials, req) {
+            
+            const user = await User.findOne({email:credentials?.email})
+            const passwordMatch  = await bcrypt.compare(credentials?.password!, user.password)
+            if(user && passwordMatch){
+              console.log(user)
+              return user
+            }
+            else{
+              return null
+            }
+          }
+        })
     ],
 
 
@@ -86,7 +112,7 @@ const options = {
       },
     },
 
-    
+
 
     /*
     Another part of this option is the jwt setting
@@ -94,25 +120,32 @@ const options = {
     thou it is advisible to still leave it that way and  not implement your own
     but you can still implement it using this method
     */
-    jwt:{
-      // here, the function params contains the secret and token
-      // the secret is simply the NEXT_SECRET we set in the .env
-      // why the token is the users session that we want to encrypt
-      async encode(params:{secret:string, token:JWT}): Promise<string>{
-        const condedtoken =  jwt.sign(
-          {...params.token,
-          iss: "gmodetech",
-          exp: Math.floor(Date.now()/1000) + 60*60
-          }, 
-          params.secret)
-        return condedtoken
-      },
-      // here the secret still remains the NEXT_SECRET 
-      // why this token is our encrypted jwt string
-      async decode(params:{secret:string, token:string}): Promise<JWT | null>{
-        const decodedToken = jwt.verify(params.token, params.secret) as JWT;
-        return decodedToken
-      }
+    // jwt:{
+    //   // here, the function params contains the secret and token
+    //   // the secret is simply the NEXT_SECRET we set in the .env
+    //   // why the token is the users session that we want to encrypt
+    //   async encode(params:{secret:string, token:JWT}): Promise<string>{
+    //     const condedtoken =  jwt.sign(
+    //       {...params.token,
+    //       iss: "gmodetech",
+    //       exp: Math.floor(Date.now()/1000) + 60*60
+    //       }, 
+    //       params.secret)
+    //     return condedtoken
+    //   },
+    //   // here the secret still remains the NEXT_SECRET 
+    //   // why this token is our encrypted jwt string
+    //   async decode(params:{secret:string, token:string}): Promise<JWT | null>{
+    //     const decodedToken = jwt.verify(params.token, params.secret) as JWT;
+    //     return decodedToken
+    //   }
+    // }
+    pages: {
+      signIn: '/auth/signin',
+      signOut: '/auth/signout',
+      error: '/auth/error', // Error code passed in query string as ?error=
+      verifyRequest: '/auth/verify-request', // (used for check email message)
+      newUser: '/auth/new-user' // New users will be directed here on first sign in (leave the property out if not of interest)
     }
 }
 export default options 

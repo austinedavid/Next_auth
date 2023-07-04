@@ -6,16 +6,16 @@ import bcrypt from "bcryptjs"
 dbConnect()
 // here, we  make use of post method to create a user
 export async function POST(request:NextRequest){
-    const {name, password, email} = await request.json()
-    console.log(email)
+    const { password, ...others} = await request.json()
+    
     try {
         const hashedPassword = bcrypt.hashSync(password, 10)
-        const newUser = new User({name, email, password:hashedPassword})
+        const newUser = new User({...others, password:hashedPassword})
         const savedUser = await newUser.save()
         console.log(savedUser)
-        return NextResponse.json(savedUser)
+        return NextResponse.json(savedUser, {status:200})
     } catch (error) {
-        return NextResponse.json({message: "something bad happended"})
+        return NextResponse.json({message: "something went wrong"}, {status: 500})
     }
 }
 

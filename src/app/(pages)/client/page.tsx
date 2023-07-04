@@ -1,8 +1,12 @@
+import Substring from '@/componets/Substring'
 import React from 'react'
 
 const Client = () => {
   return (
-    <div>Client</div>
+    <div>
+      <p>our client</p>
+      <Substring/>
+    </div>
   )
 }
 

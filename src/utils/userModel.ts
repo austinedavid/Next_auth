@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema({
     },
     maritalStatus: {
         type:String
+    },
+    resetpasswordstring:{
+        type:String,
+        unique: true
     }
 }, {timestamps: true})
 
