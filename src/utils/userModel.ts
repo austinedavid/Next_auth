@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
     },
     resetpasswordstring:{
         type:String,
-        unique: true
+        default: "not correction yet"
     }
 }, {timestamps: true})
 

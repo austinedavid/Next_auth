@@ -1,7 +1,9 @@
 "use client"
 import React, {useState} from 'react'
+import {useRouter} from "next/navigation"
 
 const Password = () => {
+    const router = useRouter()
     const[send, setsent] = useState(false)
     const[email, setemail] = useState("")
     // using this to execute the function that will sent a link to the user and also change the UI
@@ -13,6 +15,11 @@ const Password = () => {
             },
             body: JSON.stringify(email)
         })
+        if(response.ok){
+            return setsent(true)
+        }else{
+            return alert("email does not exist in the database")
+        }
     }
   return (
     <div>
